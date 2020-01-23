@@ -1,0 +1,48 @@
+excluded:
+  - Tests
+
+disabled_rules:
+  - colon
+  - opening_brace
+  - closing_brace
+  - statement_position
+  - discarded_notification_center_observer
+  - switch_case_alignment
+  - identifier_name
+  - unused_setter_value
+  - multiple_closures_with_trailing_closure
+
+opt_in_rules:
+  - private_outlet
+  - private_action
+  - anyobject_protocol
+  - collection_alignment
+  - convenience_type
+  - discouraged_object_literal
+  - discouraged_optional_collection
+  - force_unwrapping
+  - fatal_error_message
+  - fallthrough
+  - empty_string
+  - empty_count
+  - sorted_imports
+
+line_length: 150
+
+function_parameter_count:
+  warning: 4
+  error: 5
+
+file_length:
+  warning: 450
+  error: 500
+
+type_body_length:
+  warning: 300
+  error: 400
+
+closure_body_length:
+  warning: 80
+  error: 100
+
+reporter: "xcode"

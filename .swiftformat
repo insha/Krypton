@@ -1,0 +1,10 @@
+--exclude Tests, Scripts, Documentation
+
+--allman true 
+--semicolons never 
+--wraparguments after-first
+--indentcase true
+--trimwhitespace always
+--wrapcollections before-first
+--elseposition next-line
+--patternlet inline
