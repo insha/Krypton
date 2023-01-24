@@ -2,49 +2,52 @@
 //  Event.swift
 //  Krypton
 //
-//  Copyright © 2019-2020 Farhan Ahmed. All rights reserved.
+//  Copyright © 2019-2023 Farhan Ahmed. All rights reserved.
 //
 
 import Foundation
 
 public struct Event
 {
-    public typealias EventLifeCycleHook = (_ event: Event, _ transition: Transition) -> Void
-    public typealias EventTriggerCheck = (_ event: Event, _ transition: Transition) -> Bool
+    public typealias TransitionTriggerValidation = (_ event: Event, _ transition: Transition) -> Bool
 
-    public struct EventLifeCycle
+    public struct TransitionContext
     {
-        public var shouldFire: EventTriggerCheck?
-        public var willFire: EventLifeCycleHook?
-        public var didFire: EventLifeCycleHook?
+        public var should_fire: TransitionTriggerValidation?
+        public var will_fire: TransitionContextAction<Event>?
+        public var did_fire: TransitionContextAction<Event>?
 
-        public init(shouldFire: EventTriggerCheck? = nil,
-                    willFire: EventLifeCycleHook? = nil,
-                    didFire: EventLifeCycleHook? = nil)
+        public init(should_fire: TransitionTriggerValidation? = nil,
+                    will_fire: TransitionContextAction<Event>? = nil,
+                    did_fire: TransitionContextAction<Event>? = nil)
         {
-            self.shouldFire = shouldFire
-            self.willFire = willFire
-            self.didFire = didFire
+            self.should_fire = should_fire
+            self.will_fire = will_fire
+            self.did_fire = did_fire
         }
     }
 
-    let name: String
-    let sources: Set<State>
-    let destination: State
-    let lifeCycle: EventLifeCycle?
+    public let name: String
+    public let sources: Set<State>
+    public let destination: State
 
-    public init(name: String, sources: Set<State>, destination: State, lifeCycle: EventLifeCycle)
+    let transition_context: TransitionContext?
+
+    public init(name: String,
+                sources: Set<State>,
+                destination: State,
+                transition_context: TransitionContext = TransitionContext()) throws
     {
         guard !name.isEmpty
         else
         {
-            fatalError("The event name cannot be blank.")
+            throw KryptonError.invalid_event
         }
 
         self.name = name
         self.sources = sources
         self.destination = destination
-        self.lifeCycle = lifeCycle
+        self.transition_context = transition_context
     }
 }
 
@@ -65,25 +68,25 @@ extension Event: CustomStringConvertible
 {
     public var description: String
     {
-        var sourceStates: String = ""
-        let sortedSources = sources.sorted()
+        var source_states = ""
+        let sorted_sources = sources.sorted()
 
-        for (index, state) in sortedSources.enumerated()
+        for (index, state) in sorted_sources.enumerated()
         {
             if sources.count == 1
             {
-                sourceStates = "\(state.name) "
+                source_states = "\(state.name) "
             }
             else if index == sources.count - 2
             {
-                sourceStates += "\(state.name), and "
+                source_states += "\(state.name), and "
             }
             else
             {
-                sourceStates += "\(state.name), "
+                source_states += "\(state.name), "
             }
         }
 
-        return "Event `\(name)` transitions from \(sourceStates)to `\(destination.name)`"
+        return "Triggered: Event `\(name)` | transition: \(source_states) -> `\(destination.name)`"
     }
 }

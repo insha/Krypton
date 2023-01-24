@@ -2,49 +2,47 @@
 //  State.swift
 //  Krypton
 //
-//  Copyright © 2019-2020 Farhan Ahmed. All rights reserved.
+//  Copyright © 2019-2023 Farhan Ahmed. All rights reserved.
 //
 
 import Foundation
 
 public struct State
 {
-    public typealias StateLifeCycle = (_ state: State, _ transition: Transition?) -> Void
-
-    public struct LifeCycle
+    public struct Context
     {
-        public var willEnter: StateLifeCycle?
-        public var didEnter: StateLifeCycle?
-        public var willExit: StateLifeCycle?
-        public var didExit: StateLifeCycle?
+        public var will_enter: TransitionContextAction<State>?
+        public var did_enter: TransitionContextAction<State>?
+        public var will_exit: TransitionContextAction<State>?
+        public var did_exit: TransitionContextAction<State>?
 
-        public init(willEnter: StateLifeCycle? = nil,
-                    didEnter: StateLifeCycle? = nil,
-                    willExit: StateLifeCycle? = nil,
-                    didExit: StateLifeCycle? = nil)
+        public init(will_enter: TransitionContextAction<State>? = nil,
+                    did_enter: TransitionContextAction<State>? = nil,
+                    will_exit: TransitionContextAction<State>? = nil,
+                    did_exit: TransitionContextAction<State>? = nil)
         {
-            self.willEnter = willEnter
-            self.didEnter = didEnter
-            self.willExit = willExit
-            self.didExit = didExit
+            self.will_enter = will_enter
+            self.did_enter = did_enter
+            self.will_exit = will_exit
+            self.did_exit = did_exit
         }
     }
 
     let name: String
-    let userInfo: Payload?
-    let lifeCycle: LifeCycle?
+    let user_info: Payload
+    let transition_context: Context?
 
-    public init(name: String, userInfo: Payload? = nil, lifeCycle: LifeCycle?)
+    public init(name: String, user_info: Payload = [:], transition_context: Context? = nil) throws
     {
         guard !name.isEmpty
         else
         {
-            fatalError("The state name cannot be blank.")
+            throw KryptonError.invalid_state
         }
 
         self.name = name
-        self.userInfo = userInfo
-        self.lifeCycle = lifeCycle
+        self.user_info = user_info
+        self.transition_context = transition_context
     }
 }
 
@@ -86,12 +84,12 @@ extension State: RawRepresentable
         guard !rawValue.isEmpty
         else
         {
-            fatalError("The state name cannot be blank.")
+            return nil
         }
 
         name = rawValue
-        userInfo = nil
-        lifeCycle = LifeCycle()
+        user_info = [:]
+        transition_context = Context()
     }
 
     public var rawValue: String

@@ -2,58 +2,61 @@
 //  Krypton.swift
 //  Krypton
 //
-//  Copyright © 2019-2020 Farhan Ahmed. All rights reserved.
+//  Copyright © 2019-2023 Farhan Ahmed. All rights reserved.
 //
 
 import Foundation
 
 public typealias Payload = [String: Any]
+public typealias TransitionContextAction<Context> = (_ context: Context, _ transition: Transition?) -> Void
 
 protocol StateMachine
 {
     associatedtype States
     associatedtype Events
 
-    var isActive: Bool { get }
-    var currentState: State { get }
-    var initialState: State { get }
+    var is_active: Bool { get }
+    var current_state: State { get }
+    var initial_state: State { get }
 
     func activate()
-    func canFire(event: Event) -> Bool
-    func fire(event: Event, userInfo: [String: Any]) -> Result<Bool, KryptonError>
+    func can_fire(event: Event) -> Bool
+    func fire(event: Event, user_info: Payload) -> Result<Bool, KryptonError>
 }
 
 public enum KryptonError: Error
 {
-    case notFound
-    case notActivated
-    case cannotFire(message: String)
+    case not_found
+    case not_activated
+    case cannot_fire(message: String)
     case declined(message: String)
+    case invalid_state
+    case invalid_event
 }
 
 public class Krypton: StateMachine
 {
-    typealias States = Set<State>
-    typealias Events = Set<Event>
+    typealias States = [String: State]
+    typealias Events = [String: Event]
 
     private(set) var states: States
     private(set) var events: Events
-    private(set) var isActive: Bool
-    private(set) var initialState: State
-    private(set) var currentState: State
+    private(set) var initial_state: State
+    public private(set) var is_active: Bool
+    public private(set) var current_state: State
 
-    public init(initialState: State)
+    public init(initialState: State) throws
     {
-        self.initialState = initialState
-        states = []
-        events = []
-        isActive = false
-        currentState = State(name: "Starting-State", userInfo: nil, lifeCycle: State.LifeCycle())
+        initial_state = initialState
+        states = [:]
+        events = [:]
+        is_active = false
+        current_state = try State(name: "Starting-State")
     }
 
     public func add(state: State)
     {
-        guard !isActive
+        guard !is_active
         else
         {
             return
@@ -61,7 +64,7 @@ public class Krypton: StateMachine
 
         if case .failure = self.state(named: state.name)
         {
-            states.insert(state)
+            states[state.name] = state
         }
         else
         {
@@ -72,7 +75,7 @@ public class Krypton: StateMachine
     public func add(newStates: Set<State>)
     {
         guard
-            !isActive,
+            !is_active,
             !newStates.isEmpty
         else
         {
@@ -87,7 +90,7 @@ public class Krypton: StateMachine
 
     public func add(event: Event)
     {
-        guard !isActive
+        guard !is_active
         else
         {
             return
@@ -95,7 +98,7 @@ public class Krypton: StateMachine
 
         if case .failure = self.event(named: event.name)
         {
-            events.insert(event)
+            events[event.name] = event
         }
         else
         {
@@ -105,7 +108,7 @@ public class Krypton: StateMachine
 
     public func add(newEvents: Set<Event>)
     {
-        guard !isActive
+        guard !is_active
         else
         {
             return
@@ -120,15 +123,14 @@ public class Krypton: StateMachine
     public func state(named: String) -> Result<State, KryptonError>
     {
         let result: Result<State, KryptonError>
-        let foundState = states.first { $0.name == named }
 
-        if let foundState = foundState
+        if let foundState = states[named]
         {
             result = Result.success(foundState)
         }
         else
         {
-            result = Result.failure(KryptonError.notFound)
+            result = Result.failure(KryptonError.not_found)
         }
 
         return result
@@ -137,15 +139,14 @@ public class Krypton: StateMachine
     public func event(named: String) -> Result<Event, KryptonError>
     {
         let result: Result<Event, KryptonError>
-        let foundEvent = events.first { $0.name == named }
 
-        if let foundEvent = foundEvent
+        if let foundEvent = events[named]
         {
             result = Result.success(foundEvent)
         }
         else
         {
-            result = Result.failure(KryptonError.notFound)
+            result = Result.failure(KryptonError.not_found)
         }
 
         return result
@@ -153,34 +154,34 @@ public class Krypton: StateMachine
 
     public func isIn(state: State) -> Bool
     {
-        return currentState == state
+        return current_state == state
     }
 
     public func activate()
     {
-        guard !isActive
+        guard !is_active
         else
         {
             return
         }
 
-        isActive = true
+        is_active = true
 
         // Invoke lifecycle events
-        if let block = initialState.lifeCycle?.willEnter
+        if let block = initial_state.transition_context?.will_enter
         {
-            block(initialState, nil)
+            block(initial_state, nil)
         }
         else
         {
             // Nothing to do.
         }
 
-        currentState = initialState
+        current_state = initial_state
 
-        if let block = initialState.lifeCycle?.didEnter
+        if let block = initial_state.transition_context?.did_enter
         {
-            block(initialState, nil)
+            block(initial_state, nil)
         }
         else
         {
@@ -188,40 +189,40 @@ public class Krypton: StateMachine
         }
     }
 
-    public func canFire(event: Event) -> Bool
+    public func can_fire(event: Event) -> Bool
     {
-        return event.sources.isEmpty || event.sources.contains(currentState)
+        return event.sources.isEmpty || event.sources.contains(current_state)
     }
 
-    public func fire(event: Event, userInfo: [String: Any] = [:]) -> Result<Bool, KryptonError>
+    public func fire(event: Event, user_info: Payload = [:]) -> Result<Bool, KryptonError>
     {
-        guard isActive
+        guard is_active
         else
         {
-            return Result.failure(KryptonError.notActivated)
+            return Result.failure(KryptonError.not_activated)
         }
 
         // Check if the transition is permitted
-        if !canFire(event: event)
+        if !can_fire(event: event)
         {
             let message = "An attempt was made to fire the `\(event.name)` event " +
-                          "while in the `\(currentState.name)` state. This event can " +
-                          "only be fired from the following states: \(event.sources)"
-            return Result.failure(KryptonError.cannotFire(message: message))
+                "while in the `\(current_state.name)` state. This event can " +
+                "only be fired from the following states: \(event.sources)"
+            return Result.failure(KryptonError.cannot_fire(message: message))
         }
         else
         {
             // Nothing to do.
         }
 
-        let transition = Transition(event: event, source: currentState, in: self, userInfo: userInfo)
+        let transition = Transition(event: event, source: current_state, in: self, user_info: user_info)
 
-        if let block = event.lifeCycle?.shouldFire
+        if let block = event.transition_context?.should_fire
         {
             if !block(event, transition)
             {
                 let message = "An attempt to fire the `\(event.name)` event was declined " +
-                              "because `shouldFire` method returned `false`."
+                    "because `shouldFire` method returned `false`."
                 return Result.failure(KryptonError.declined(message: message))
             }
             else
@@ -231,29 +232,29 @@ public class Krypton: StateMachine
         }
         else
         {
-            // When the `shouldFire` closure is not provided, that
+            // When the `should_fire` closure is not provided, that
             // is the same as if it has returned the value `true`.
             // therefore the event will be triggered and all
             // associated lifecycle closures will be invoked, if available.
         }
 
-        let oldState = currentState
-        let newState = event.destination
+        let old_state = current_state
+        let new_state = event.destination
 
-        eventLifeCycle(event: event, transition: transition, block: event.lifeCycle?.willFire)
-        stateLifeCycle(state: oldState, transition: transition, block: oldState.lifeCycle?.willExit)
-        stateLifeCycle(state: newState, transition: transition, block: newState.lifeCycle?.willEnter)
+        event_transition(event: event, transition: transition, block: event.transition_context?.will_fire)
+        state_transition(state: old_state, transition: transition, block: old_state.transition_context?.will_exit)
+        state_transition(state: new_state, transition: transition, block: new_state.transition_context?.will_enter)
 
-        currentState = newState
+        current_state = new_state
 
-        stateLifeCycle(state: oldState, transition: transition, block: oldState.lifeCycle?.didExit)
-        stateLifeCycle(state: newState, transition: transition, block: newState.lifeCycle?.didEnter)
-        eventLifeCycle(event: event, transition: transition, block: event.lifeCycle?.didFire)
+        state_transition(state: old_state, transition: transition, block: old_state.transition_context?.did_exit)
+        state_transition(state: new_state, transition: transition, block: new_state.transition_context?.did_enter)
+        event_transition(event: event, transition: transition, block: event.transition_context?.did_fire)
 
         return Result.success(true)
     }
 
-    private func eventLifeCycle(event: Event, transition: Transition, block: Event.EventLifeCycleHook?)
+    private func event_transition(event: Event, transition: Transition, block: TransitionContextAction<Event>?)
     {
         if let block = block
         {
@@ -265,7 +266,7 @@ public class Krypton: StateMachine
         }
     }
 
-    private func stateLifeCycle(state: State, transition: Transition?, block: State.StateLifeCycle?)
+    private func state_transition(state: State, transition: Transition?, block: TransitionContextAction<State>?)
     {
         if let block = block
         {
@@ -282,27 +283,27 @@ extension Krypton: CustomStringConvertible
 {
     public var description: String
     {
-        return "State Machine: \(states.count) States | \(events.count) Events | Current State: \(currentState)"
+        return "State Machine: \(states.count) States | \(events.count) Events | Current State: \(current_state)"
     }
 
-    public var dotDescription: String
+    public var dot_description: String
     {
-        var dotGraph = "digraph StateMachine {\n"
+        var dot_graph = "digraph StateMachine {\n"
 
-        dotGraph += "  \"\" [style=\"invis\"]; \"\" -> \"\(initialState.name)\" [dir=both, arrowtail=dot]; // Initial State\n"
-        dotGraph += "  \"\(currentState.name)\" [style=bold]; // Current State\n"
+        dot_graph += "  \"\" [style=\"invis\"]; \"\" -> \"\(initial_state.name)\" [dir=both, arrowtail=dot]; // Initial State\n"
+        dot_graph += "  \"\(current_state.name)\" [style=bold]; // Current State\n"
 
-        for event in events
+        for (_, event) in events
         {
             for source in event.sources
             {
-                dotGraph += "  \"\(source.name)\" -> \"\(event.destination.name)\" [label=\"\(event.name)\", " +
-                            "fontname=\"Menlo Italic\", fontsize=9];\n"
+                dot_graph += "  \"\(source.name)\" -> \"\(event.destination.name)\" [label=\"\(event.name)\", " +
+                    "fontname=\"Menlo Italic\", fontsize=9];\n"
             }
         }
 
-        dotGraph += "}"
+        dot_graph += "}"
 
-        return dotGraph
+        return dot_graph
     }
 }

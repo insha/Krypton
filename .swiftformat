@@ -1,10 +1,17 @@
---exclude Tests, Scripts, Documentation
+# format options
 
+--exclude DerivedData, Documentation, Scripts
+
+--disable redundantType
+
+--indent 4
 --allman true 
---semicolons never 
---wraparguments after-first
---indentcase true
---trimwhitespace always
---wrapcollections before-first
 --elseposition next-line
+--indentcase true
 --patternlet inline
+--semicolons never 
+--shortoptionals always
+--stripunusedargs always
+--trimwhitespace always
+--wraparguments after-first
+--wrapcollections before-first
