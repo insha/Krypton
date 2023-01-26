@@ -11,10 +11,10 @@ public struct State
 {
     public struct Context
     {
-        public var will_enter: TransitionContextAction<State>?
-        public var did_enter: TransitionContextAction<State>?
-        public var will_exit: TransitionContextAction<State>?
-        public var did_exit: TransitionContextAction<State>?
+        private(set) var will_enter: TransitionContextAction<State>?
+        private(set) var did_enter: TransitionContextAction<State>?
+        private(set) var will_exit: TransitionContextAction<State>?
+        private(set) var did_exit: TransitionContextAction<State>?
 
         public init(will_enter: TransitionContextAction<State>? = nil,
                     did_enter: TransitionContextAction<State>? = nil,

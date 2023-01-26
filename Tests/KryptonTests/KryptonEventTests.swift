@@ -40,7 +40,7 @@ class KryptonEventTests: XCTestCase
     {
         let state = try State(name: "State A")
         let event = try Event(name: "Event A", sources: [state], destination: state)
-        let expectedValue = "Triggered: Event `Event A` | transition: State A  -> `State A`"
+        let expectedValue = "Triggered: Event `Event A` | transition: State A  -> State A"
         let actualValue = String(describing: event)
 
         XCTAssertTrue(actualValue == expectedValue,
@@ -53,7 +53,7 @@ class KryptonEventTests: XCTestCase
         let stateB = try State(name: "State B")
         let stateC = try State(name: "State C")
         let event = try Event(name: "Event A", sources: [state, stateB, stateC], destination: state)
-        let expectedValue = "Triggered: Event `Event A` | transition: State A, State B, and State C,  -> `State A`"
+        let expectedValue = "Triggered: Event `Event A` | transition: State A, State B, and State C,  -> State A"
         let actualValue = String(describing: event)
 
         XCTAssertTrue(actualValue == expectedValue,

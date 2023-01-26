@@ -21,7 +21,7 @@ protocol StateMachine
 
     func activate()
     func can_fire(event: Event) -> Bool
-    func fire(event: Event, user_info: Payload) -> Result<Bool, KryptonError>
+    func fire(event: Event, user_info: Payload) throws
 }
 
 public enum KryptonError: Error
@@ -45,9 +45,9 @@ public class Krypton: StateMachine
     public private(set) var is_active: Bool
     public private(set) var current_state: State
 
-    public init(initialState: State) throws
+    public init(initial_state: State) throws
     {
-        initial_state = initialState
+        self.initial_state = initial_state
         states = [:]
         events = [:]
         is_active = false
@@ -72,17 +72,17 @@ public class Krypton: StateMachine
         }
     }
 
-    public func add(newStates: Set<State>)
+    public func add(states: Set<State>)
     {
         guard
             !is_active,
-            !newStates.isEmpty
+            !states.isEmpty
         else
         {
             return
         }
 
-        newStates.forEach
+        states.forEach
         { state in
             self.add(state: state)
         }
@@ -106,7 +106,7 @@ public class Krypton: StateMachine
         }
     }
 
-    public func add(newEvents: Set<Event>)
+    public func add(events: Set<Event>)
     {
         guard !is_active
         else
@@ -114,7 +114,7 @@ public class Krypton: StateMachine
             return
         }
 
-        newEvents.forEach
+        events.forEach
         { event in
             self.add(event: event)
         }
@@ -194,12 +194,12 @@ public class Krypton: StateMachine
         return event.sources.isEmpty || event.sources.contains(current_state)
     }
 
-    public func fire(event: Event, user_info: Payload = [:]) -> Result<Bool, KryptonError>
+    public func fire(event: Event, user_info: Payload = [:]) throws
     {
         guard is_active
         else
         {
-            return Result.failure(KryptonError.not_activated)
+            throw KryptonError.not_activated
         }
 
         // Check if the transition is permitted
@@ -208,7 +208,8 @@ public class Krypton: StateMachine
             let message = "An attempt was made to fire the `\(event.name)` event " +
                 "while in the `\(current_state.name)` state. This event can " +
                 "only be fired from the following states: \(event.sources)"
-            return Result.failure(KryptonError.cannot_fire(message: message))
+
+            throw KryptonError.cannot_fire(message: message)
         }
         else
         {
@@ -217,18 +218,13 @@ public class Krypton: StateMachine
 
         let transition = Transition(event: event, source: current_state, in: self, user_info: user_info)
 
-        if let block = event.transition_context?.should_fire
+        if let should_file = event.transition_context?.should_fire,
+           !should_file(event, transition)
         {
-            if !block(event, transition)
-            {
-                let message = "An attempt to fire the `\(event.name)` event was declined " +
-                    "because `shouldFire` method returned `false`."
-                return Result.failure(KryptonError.declined(message: message))
-            }
-            else
-            {
-                // Nothing to do.
-            }
+            let message = "An attempt to fire the `\(event.name)` event was declined " +
+                "because `shouldFire` method returned `false`."
+
+            throw KryptonError.declined(message: message)
         }
         else
         {
@@ -243,15 +239,15 @@ public class Krypton: StateMachine
 
         event_transition(event: event, transition: transition, block: event.transition_context?.will_fire)
         state_transition(state: old_state, transition: transition, block: old_state.transition_context?.will_exit)
+
+        event_transition(event: event, transition: transition, block: event.transition_context?.did_fire)
+
+        state_transition(state: old_state, transition: transition, block: old_state.transition_context?.did_exit)
         state_transition(state: new_state, transition: transition, block: new_state.transition_context?.will_enter)
 
         current_state = new_state
 
-        state_transition(state: old_state, transition: transition, block: old_state.transition_context?.did_exit)
         state_transition(state: new_state, transition: transition, block: new_state.transition_context?.did_enter)
-        event_transition(event: event, transition: transition, block: event.transition_context?.did_fire)
-
-        return Result.success(true)
     }
 
     private func event_transition(event: Event, transition: Transition, block: TransitionContextAction<Event>?)

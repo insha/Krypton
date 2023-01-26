@@ -13,9 +13,9 @@ public struct Event
 
     public struct TransitionContext
     {
-        public var should_fire: TransitionTriggerValidation?
-        public var will_fire: TransitionContextAction<Event>?
-        public var did_fire: TransitionContextAction<Event>?
+        private(set) var should_fire: TransitionTriggerValidation?
+        private(set) var will_fire: TransitionContextAction<Event>?
+        private(set) var did_fire: TransitionContextAction<Event>?
 
         public init(should_fire: TransitionTriggerValidation? = nil,
                     will_fire: TransitionContextAction<Event>? = nil,
@@ -87,6 +87,6 @@ extension Event: CustomStringConvertible
             }
         }
 
-        return "Triggered: Event `\(name)` | transition: \(source_states) -> `\(destination.name)`"
+        return "Triggered: Event `\(name)` | transition: \(source_states) -> \(destination.name)"
     }
 }

@@ -16,9 +16,9 @@ final class KryptonTests: XCTestCase
         let stateB = try State(name: "State-B")
         let event = try Event(name: "From-A-to-B", sources: [stateA], destination: stateB)
 
-        let system = try Krypton(initialState: stateA)
+        let system = try Krypton(initial_state: stateA)
 
-        system.add(newStates: [stateA, stateB])
+        system.add(states: [stateA, stateB])
         system.add(event: event)
         system.activate()
 
@@ -31,13 +31,13 @@ final class KryptonTests: XCTestCase
         let stateB = try State(name: "State-B")
         let event = try Event(name: "From-A-to-B", sources: [stateA], destination: stateB)
 
-        let system = try Krypton(initialState: stateA)
+        let system = try Krypton(initial_state: stateA)
 
         system.activate()
 
-        system.add(newStates: [stateA, stateB])
+        system.add(states: [stateA, stateB])
         system.add(event: event)
-        system.add(newEvents: [event])
+        system.add(events: [event])
 
         XCTAssertTrue(system.states.isEmpty, "We expected to not have any states, but the state machine has states.")
     }
@@ -48,9 +48,9 @@ final class KryptonTests: XCTestCase
         let stateB = try State(name: "State-B")
         let event = try Event(name: "From-A-to-B", sources: [stateA], destination: stateB)
 
-        let system = try Krypton(initialState: stateA)
+        let system = try Krypton(initial_state: stateA)
 
-        system.add(newStates: [stateA, stateB])
+        system.add(states: [stateA, stateB])
         system.add(event: event)
         system.activate()
 
@@ -63,9 +63,9 @@ final class KryptonTests: XCTestCase
         let stateB = try State(name: "State-B")
         let event = try Event(name: "From-A-to-B", sources: [stateA], destination: stateB)
 
-        let system = try Krypton(initialState: stateA)
+        let system = try Krypton(initial_state: stateA)
 
-        system.add(newStates: [stateA, stateB])
+        system.add(states: [stateA, stateB])
         system.add(state: stateA)
         system.add(event: event)
         system.activate()
@@ -79,9 +79,9 @@ final class KryptonTests: XCTestCase
         let stateB = try State(name: "State-B")
         let event = try Event(name: "From-A-to-B", sources: [stateA], destination: stateB)
 
-        let system = try Krypton(initialState: stateA)
+        let system = try Krypton(initial_state: stateA)
 
-        system.add(newStates: [stateA, stateB])
+        system.add(states: [stateA, stateB])
         system.add(event: event)
         system.add(event: event)
         system.activate()
@@ -96,10 +96,10 @@ final class KryptonTests: XCTestCase
         let eventA = try Event(name: "From-A-to-B", sources: [stateA], destination: stateB)
         let eventB = try Event(name: "From-B-to-A", sources: [stateB], destination: stateA)
 
-        let system = try Krypton(initialState: stateA)
+        let system = try Krypton(initial_state: stateA)
 
-        system.add(newStates: [stateA, stateB])
-        system.add(newEvents: [eventA, eventB])
+        system.add(states: [stateA, stateB])
+        system.add(events: [eventA, eventB])
         system.activate()
 
         XCTAssertTrue(system.events.count == 2, "We expected the state machine to have 2 events, but it has `\(system.events.count)` events.")
@@ -110,7 +110,7 @@ final class KryptonTests: XCTestCase
         let stateA = try State(name: "State-A")
         let stateB = try State(name: "State-B")
 
-        let system = try Krypton(initialState: stateA)
+        let system = try Krypton(initial_state: stateA)
 
         system.activate()
 
@@ -129,9 +129,9 @@ final class KryptonTests: XCTestCase
         }
 
         let initialState = try State(name: "State-Initial")
-        let system = try Krypton(initialState: initialState)
+        let system = try Krypton(initial_state: initialState)
 
-        system.add(newStates: states)
+        system.add(states: states)
         system.activate()
 
         measure
@@ -145,16 +145,16 @@ final class KryptonTests: XCTestCase
         var events: Set<Event> = []
         let stateA = try State(name: "State-A")
         let stateB = try State(name: "State-B")
-        let system = try Krypton(initialState: stateA)
+        let system = try Krypton(initial_state: stateA)
 
-        system.add(newStates: [stateA, stateB])
+        system.add(states: [stateA, stateB])
 
         for index in 0 ... 10000
         {
             events.insert(try Event(name: "Event-\(index)", sources: [stateA, stateB], destination: stateB))
         }
 
-        system.add(newEvents: events)
+        system.add(events: events)
         system.activate()
 
         measure
@@ -168,16 +168,16 @@ final class KryptonTests: XCTestCase
         var events: Set<Event> = []
         let stateA = try State(name: "State-A")
         let stateB = try State(name: "State-B")
-        let system = try Krypton(initialState: stateA)
+        let system = try Krypton(initial_state: stateA)
 
-        system.add(newStates: [stateA, stateB])
+        system.add(states: [stateA, stateB])
 
         for index in 0 ... 10000
         {
             events.insert(try Event(name: "Event-\(index)", sources: [stateA, stateB], destination: stateB))
         }
 
-        system.add(newEvents: events)
+        system.add(events: events)
         system.activate()
 
         let result = system.event(named: "Event-4200")
@@ -189,7 +189,7 @@ final class KryptonTests: XCTestCase
 
             self.measure
             {
-                _ = system.fire(event: fireEvent)
+                try? system.fire(event: fireEvent)
             }
         }
         else
@@ -201,7 +201,7 @@ final class KryptonTests: XCTestCase
     func testStateLookupFailure() throws
     {
         let stateA = try State(name: "State-A")
-        let system = try Krypton(initialState: stateA)
+        let system = try Krypton(initial_state: stateA)
         let result = system.state(named: "State-B")
         var value = false
 
@@ -230,14 +230,14 @@ final class KryptonTests: XCTestCase
         let stateA = try State(name: "State-A")
         let stateB = try State(name: "State-B")
         let eventA = try Event(name: "Event-A-to-B", sources: [stateA], destination: stateB)
-        let system = try Krypton(initialState: stateA)
+        let system = try Krypton(initial_state: stateA)
 
-        system.add(newStates: [stateA, stateB])
-        system.add(newEvents: [eventA])
+        system.add(states: [stateA, stateB])
+        system.add(events: [eventA])
 
         system.activate()
 
-        _ = system.fire(event: eventA)
+        try system.fire(event: eventA)
 
         XCTAssertTrue(system.isIn(state: stateB),
                       "We expected the state machine to be in state `\(stateB.name)`, but it is in `\(system.current_state.name)`.")
@@ -248,31 +248,13 @@ final class KryptonTests: XCTestCase
         let stateA = try State(name: "State-A")
         let stateB = try State(name: "State-B")
         let eventA = try Event(name: "Event-A-to-B", sources: [stateA], destination: stateB)
-        let system = try Krypton(initialState: stateA)
+        let system = try Krypton(initial_state: stateA)
 
-        system.add(newStates: [stateA, stateB])
-        system.add(newEvents: [eventA])
+        system.add(states: [stateA, stateB])
+        system.add(events: [eventA])
 
-        let result = system.fire(event: eventA)
-        var value = false
-
-        if case .failure(let expectedError) = result
-        {
-            if case .not_activated = expectedError
-            {
-                value = true
-            }
-            else
-            {
-                // Nothing to do.
-            }
-        }
-        else
-        {
-            // Nothing to do.
-        }
-
-        XCTAssertTrue(value, "We expected the `cannotFire` error, but received the error `\(result)`.")
+        XCTAssertThrowsError(try system.fire(event: eventA),
+                             "We expected the `not_activated` error; but no errors were thrown.")
     }
 
     func testTransitionIsNotPermitted() throws
@@ -281,99 +263,50 @@ final class KryptonTests: XCTestCase
         let stateB = try State(name: "State-B")
         let stateC = try State(name: "State-C")
         let eventA = try Event(name: "Event-A-to-B", sources: [stateA], destination: stateB)
-        let system = try Krypton(initialState: stateC)
-        var value = false
+        let system = try Krypton(initial_state: stateC)
 
-        system.add(newStates: [stateA, stateB, stateC])
-        system.add(newEvents: [eventA])
+        system.add(states: [stateA, stateB, stateC])
+        system.add(events: [eventA])
 
         system.activate()
 
-        let result = system.fire(event: eventA)
-
-        if case .failure(let expectedError) = result
-        {
-            if case .cannot_fire = expectedError
-            {
-                value = true
-            }
-            else
-            {
-                // Nothing to do.
-            }
-        }
-        else
-        {
-            // Nothing to do.
-        }
-
-        XCTAssertTrue(value, "We expected the state machine to return the error `cannotFire`, but we received `\(result)`")
+        XCTAssertThrowsError(try system.fire(event: eventA),
+                             "We expected the `cannot_fire` error; but no errors were thrown.")
     }
 
     func testEventThatIsDeclined() throws
     {
         let stateA = try State(name: "State-A")
         let stateB = try State(name: "State-B")
-        let eventShouldNotFire: Event.TransitionTriggerValidation = { _, _ -> Bool in false }
-        let eventLifeCycle = Event.TransitionContext(should_fire: eventShouldNotFire,
-                                                     will_fire: nil,
-                                                     did_fire: nil)
-        let eventA = try Event(name: "Event-A-to-B", sources: [stateA], destination: stateB, transition_context: eventLifeCycle)
-        let system = try Krypton(initialState: stateA)
+        let disallow_event: Event.TransitionTriggerValidation = { _, _ -> Bool in false }
+        let event_transition = Event.TransitionContext(should_fire: disallow_event,
+                                                       will_fire: nil,
+                                                       did_fire: nil)
+        let eventA = try Event(name: "Event-A-to-B", sources: [stateA], destination: stateB, transition_context: event_transition)
+        let system = try Krypton(initial_state: stateA)
 
-        system.add(newStates: [stateA, stateB])
-        system.add(newEvents: [eventA])
+        system.add(states: [stateA, stateB])
+        system.add(events: [eventA])
         system.activate()
 
-        let result = system.fire(event: eventA)
-        var value = false
-
-        if case .failure(let expectedError) = result
-        {
-            if case .declined = expectedError
-            {
-                value = true
-            }
-            else
-            {
-                // Nothing to do.
-            }
-        }
-        else
-        {
-            // Nothing to do.
-        }
-
-        XCTAssertTrue(value, "We expected the state machine to decline the event, but it was not declined.")
+        XCTAssertThrowsError(try system.fire(event: eventA),
+                             "We expected the `declined` error; but no errors were thrown.")
     }
 
     func testEventThatIsExplicitlyAllowedToBeTriggered() throws
     {
         let stateA = try State(name: "State-A")
         let stateB = try State(name: "State-B")
-        let eventShouldNotFire: Event.TransitionTriggerValidation = { _, _ -> Bool in true }
-        let eventLifeCycle = Event.TransitionContext(should_fire: eventShouldNotFire,
-                                                     will_fire: nil,
-                                                     did_fire: nil)
-        let eventA = try Event(name: "Event-A-to-B", sources: [stateA], destination: stateB, transition_context: eventLifeCycle)
-        let system = try Krypton(initialState: stateA)
+        let allow_event: Event.TransitionTriggerValidation = { _, _ -> Bool in true }
+        let event_transition = Event.TransitionContext(should_fire: allow_event, will_fire: nil, did_fire: nil)
+        let eventA = try Event(name: "Event-A-to-B", sources: [stateA], destination: stateB, transition_context: event_transition)
+        let system = try Krypton(initial_state: stateA)
 
-        system.add(newStates: [stateA, stateB])
-        system.add(newEvents: [eventA])
+        system.add(states: [stateA, stateB])
+        system.add(events: [eventA])
         system.activate()
 
-        let result = system.fire(event: eventA)
-        var value = false
-
-        if case .success(let resultValue) = result
-        {
-            value = resultValue
-        }
-        else
-        {
-            // Nothing to do.
-        }
-
-        XCTAssertTrue(value, "We expected the state machine to allow the event, but it was declined.")
+        XCTAssertNoThrow(try system.fire(event: eventA),
+                         "We expected the state machine to allow the event, but it was declined.")
     }
 }

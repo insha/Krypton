@@ -105,17 +105,10 @@ extension AlarmService
         do
         {
             let event = try event.event(in: fsm)
-            let result = fsm.fire(event: event, user_info: user_info)
 
-            if case .failure(let message) = result
-            {
-                debugPrint("Failure: \(message)")
-            }
-            else
-            {
-                debugPrint("\(event.description)")
-                current_state = fsm.current_state
-            }
+            try fsm.fire(event: event, user_info: user_info)
+
+            current_state = fsm.current_state
         }
         catch
         {
@@ -131,10 +124,10 @@ extension AlarmService
         do
         {
             let (states, events, initial_state) = try states_and_events()
-            let fsm = try Krypton(initialState: initial_state)
+            let fsm = try Krypton(initial_state: initial_state)
 
-            fsm.add(newStates: states)
-            fsm.add(newEvents: events)
+            fsm.add(states: states)
+            fsm.add(events: events)
 
             return fsm
         }
@@ -148,15 +141,23 @@ extension AlarmService
                                                        events: Set<Event>,
                                                        initial: State)
     {
-        let state_armed = try State(name: "Armed")
-        let state_disarmed = try State(name: "Disarmed")
-        let state_alarm = try State(name: "Alarm")
+        let state_transitions = State.Context(will_enter: { context, _ in print("[Will Enter] \(context)") },
+                                              did_enter: { context, _ in print("[Did Enter] \(context)") },
+                                              will_exit: { context, _ in print("[Will Exit] \(context)") },
+                                              did_exit: { context, _ in print("[Did Exit] \(context)") })
 
-        let event_arm = try Event(name: Events.arm.rawValue, sources: [state_disarmed], destination: state_armed)
-        let event_disarm = try Event(name: Events.disarm.rawValue, sources: [state_armed], destination: state_disarmed)
-        let event_breach = try Event(name: Events.breach.rawValue, sources: [state_armed], destination: state_alarm)
-        let event_panic = try Event(name: Events.panic.rawValue, sources: [state_armed], destination: state_alarm)
-        let event_reset = try Event(name: Events.reset.rawValue, sources: [state_alarm], destination: state_disarmed)
+        let event_transitions = Event.TransitionContext(will_fire: { context, _ in print("[Will Fire] \(context)") },
+                                                        did_fire: { context, _ in print("[Did Fire] \(context)") })
+
+        let state_armed = try State(name: "Armed", transition_context: state_transitions)
+        let state_disarmed = try State(name: "Disarmed", transition_context: state_transitions)
+        let state_alarm = try State(name: "Alarm", transition_context: state_transitions)
+
+        let event_arm = try Event(name: Events.arm.rawValue, sources: [state_disarmed], destination: state_armed, transition_context: event_transitions)
+        let event_disarm = try Event(name: Events.disarm.rawValue, sources: [state_armed], destination: state_disarmed, transition_context: event_transitions)
+        let event_breach = try Event(name: Events.breach.rawValue, sources: [state_armed], destination: state_alarm, transition_context: event_transitions)
+        let event_panic = try Event(name: Events.panic.rawValue, sources: [state_armed], destination: state_alarm, transition_context: event_transitions)
+        let event_reset = try Event(name: Events.reset.rawValue, sources: [state_alarm], destination: state_disarmed, transition_context: event_transitions)
 
         return (states: [state_armed, state_disarmed, state_alarm],
                 events: [event_arm, event_disarm, event_reset, event_breach, event_panic],
