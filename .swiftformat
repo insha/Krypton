@@ -5,7 +5,8 @@
 --disable redundantType
 
 --indent 4
---allman true 
+--allman true
+--closingparen same-line
 --elseposition next-line
 --indentcase true
 --patternlet inline

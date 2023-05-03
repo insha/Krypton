@@ -22,8 +22,7 @@ public extension StateMachine
                 will_enter: TransitionContextAction<State>? = nil,
                 did_enter: TransitionContextAction<State>? = nil,
                 will_exit: TransitionContextAction<State>? = nil,
-                did_exit: TransitionContextAction<State>? = nil
-            )
+                did_exit: TransitionContextAction<State>? = nil)
             {
                 self.will_enter = will_enter
                 self.did_enter = did_enter
@@ -32,8 +31,9 @@ public extension StateMachine
             }
         }
 
-        let name: String
-        let user_info: Payload
+        public let name: String
+        public let user_info: Payload
+
         let transition_context: Context?
 
         public init(name: String, user_info: Payload = [:], transition_context: Context? = nil) throws

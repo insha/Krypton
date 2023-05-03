@@ -81,8 +81,6 @@ public final class EventBuilder
             transition_context: StateMachine.Event.TransitionContext(
                 should_fire: context_action_should_fire,
                 will_fire: context_action_will_fire,
-                did_fire: context_action_did_fire
-            )
-        )
+                did_fire: context_action_did_fire))
     }
 }

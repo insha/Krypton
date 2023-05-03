@@ -223,8 +223,7 @@ final class KryptonTests: XCTestCase
 
         XCTAssertTrue(
             value,
-            "We expected the state machine to return a `notActivated` error, but did not received any error."
-        )
+            "We expected the state machine to return a `notActivated` error, but did not received any error.")
     }
 
     func testStateMachineInCorrectState() throws
@@ -243,8 +242,7 @@ final class KryptonTests: XCTestCase
 
         XCTAssertTrue(
             system.isIn(state: stateB),
-            "We expected the state machine to be in state `\(stateB.name)`, but it is in `\(system.current_state.name)`."
-        )
+            "We expected the state machine to be in state `\(stateB.name)`, but it is in `\(system.current_state.name)`.")
     }
 
     func testStateMachineCannotFireEventWhenNotActivated() throws
@@ -259,8 +257,7 @@ final class KryptonTests: XCTestCase
 
         XCTAssertThrowsError(
             try system.fire(event: eventA),
-            "We expected the `not_activated` error; but no errors were thrown."
-        )
+            "We expected the `not_activated` error; but no errors were thrown.")
     }
 
     func testTransitionIsNotPermitted() throws
@@ -278,7 +275,6 @@ final class KryptonTests: XCTestCase
 
         XCTAssertThrowsError(
             try system.fire(event: eventA),
-            "We expected the `cannot_fire` error; but no errors were thrown."
-        )
+            "We expected the `cannot_fire` error; but no errors were thrown.")
     }
 }

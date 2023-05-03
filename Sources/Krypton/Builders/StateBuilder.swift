@@ -79,8 +79,6 @@ public final class StateBuilder
                 will_enter: context_action_will_enter,
                 did_enter: context_action_did_enter,
                 will_exit: context_action_will_exit,
-                did_exit: context_action_did_exit
-            )
-        )
+                did_exit: context_action_did_exit))
     }
 }

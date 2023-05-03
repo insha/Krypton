@@ -150,13 +150,11 @@ extension AlarmService
             will_enter: { context, _ in print("[Will Enter] \(context)") },
             did_enter: { context, _ in print("[Did Enter] \(context)") },
             will_exit: { context, _ in print("[Will Exit] \(context)") },
-            did_exit: { context, _ in print("[Did Exit] \(context)") }
-        )
+            did_exit: { context, _ in print("[Did Exit] \(context)") })
 
         let event_transitions = Event.TransitionContext(
             will_fire: { context, _ in print("[Will Fire] \(context)") },
-            did_fire: { context, _ in print("[Did Fire] \(context)") }
-        )
+            did_fire: { context, _ in print("[Did Fire] \(context)") })
 
         let state_armed = try State(name: "Armed", transition_context: state_transitions)
         let state_disarmed = try State(name: "Disarmed", transition_context: state_transitions)
@@ -171,7 +169,6 @@ extension AlarmService
         return (
             states: [state_armed, state_disarmed, state_alarm],
             events: [event_arm, event_disarm, event_reset, event_breach, event_panic],
-            initial: state_disarmed
-        )
+            initial: state_disarmed)
     }
 }

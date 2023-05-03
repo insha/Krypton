@@ -14,8 +14,7 @@ final class KryptonStateTests: XCTestCase
     {
         XCTAssertNoThrow(
             try StateMachine.State(name: "State-A"),
-            "We expected an state to be created; but it wasn't."
-        )
+            "We expected an state to be created; but it wasn't.")
     }
 
     func testFailureToCreateAState() throws

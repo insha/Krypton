@@ -22,8 +22,7 @@ public extension StateMachine
             public init(
                 should_fire: TransitionTriggerValidation? = nil,
                 will_fire: TransitionContextAction<Event>? = nil,
-                did_fire: TransitionContextAction<Event>? = nil
-            )
+                did_fire: TransitionContextAction<Event>? = nil)
             {
                 self.should_fire = should_fire
                 self.will_fire = will_fire
@@ -41,8 +40,7 @@ public extension StateMachine
             name: String,
             sources: Set<State>,
             destination: State,
-            transition_context: TransitionContext = TransitionContext()
-        ) throws
+            transition_context: TransitionContext = TransitionContext()) throws
         {
             guard !name.isEmpty
             else

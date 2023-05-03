@@ -45,8 +45,7 @@ class KryptonEventTests: XCTestCase
 
         XCTAssertTrue(
             actualValue == expectedValue,
-            "The description, `\(actualValue)`, does not match what was expected, `\(expectedValue)`"
-        )
+            "The description, `\(actualValue)`, does not match what was expected, `\(expectedValue)`")
     }
 
     func testAnEventDescriptionWithMultipleSourceState() throws
@@ -60,8 +59,7 @@ class KryptonEventTests: XCTestCase
 
         XCTAssertTrue(
             actualValue == expectedValue,
-            "The description, `\(actualValue)`, does not match what was expected, `\(expectedValue)`"
-        )
+            "The description, `\(actualValue)`, does not match what was expected, `\(expectedValue)`")
     }
 
     func testEventThatIsDeclined() throws
@@ -72,14 +70,12 @@ class KryptonEventTests: XCTestCase
         let event_transition = StateMachine.Event.TransitionContext(
             should_fire: disallow_event,
             will_fire: nil,
-            did_fire: nil
-        )
+            did_fire: nil)
         let eventA = try StateMachine.Event(
             name: "Event-A-to-B",
             sources: [stateA],
             destination: stateB,
-            transition_context: event_transition
-        )
+            transition_context: event_transition)
         let system = try StateMachine(initial_state: stateA)
 
         system.add(states: [stateA, stateB])
@@ -88,8 +84,7 @@ class KryptonEventTests: XCTestCase
 
         XCTAssertThrowsError(
             try system.fire(event: eventA),
-            "We expected the `declined` error; but no errors were thrown."
-        )
+            "We expected the `declined` error; but no errors were thrown.")
     }
 
     func testEventThatIsExplicitlyAllowedToBeTriggered() throws
@@ -100,14 +95,12 @@ class KryptonEventTests: XCTestCase
         let event_transition = StateMachine.Event.TransitionContext(
             should_fire: allow_event,
             will_fire: nil,
-            did_fire: nil
-        )
+            did_fire: nil)
         let eventA = try StateMachine.Event(
             name: "Event-A-to-B",
             sources: [stateA],
             destination: stateB,
-            transition_context: event_transition
-        )
+            transition_context: event_transition)
         let system = try StateMachine(initial_state: stateA)
 
         system.add(states: [stateA, stateB])
@@ -116,7 +109,6 @@ class KryptonEventTests: XCTestCase
 
         XCTAssertNoThrow(
             try system.fire(event: eventA),
-            "We expected the state machine to allow the event, but it was declined."
-        )
+            "We expected the state machine to allow the event, but it was declined.")
     }
 }

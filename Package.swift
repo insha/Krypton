@@ -17,6 +17,5 @@ let package = Package(
     dependencies: [],
     targets: [
         .target(name: "Krypton", dependencies: []),
-        .testTarget(name: "KryptonTests",
-                    dependencies: ["Krypton"])
+        .testTarget(name: "KryptonTests", dependencies: ["Krypton"])
     ])
