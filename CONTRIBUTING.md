@@ -1,7 +1,7 @@
-How to contribute to Helium
-===========================
+How to contribute to Krypton
+============================
 
-Thank you for considering contributing to Helium!
+Thank you for considering contributing to Krypton!
 
 Reporting issues
 ----------------
